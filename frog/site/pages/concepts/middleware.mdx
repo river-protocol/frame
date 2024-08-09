@@ -1,0 +1,274 @@
+# Middleware
+
+Since Frog is built on top of [Hono](https://hono.dev), Frog supports Hono's middleware pattern.
+
+Middleware works before and after the `.frame` [handler](/reference/frog-frame#handler) by allowing you to manipulate the request and response before and after dispatching respectively. We recommend checking out the Hono [documentation on Middleware](https://hono.dev/guides/middleware) for a more in-depth understanding.
+
+## Overview
+
+There are two ways to inject middleware:
+
+1. Globally, on the [App-level](#app-level).
+2. Isolated, on a [Route-level](#route-level).
+
+### App-level
+
+We can inject middleware on the `app` level using the `.use` method. This means middleware will be injected for all routes under `app`.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { neynar, type NeynarVariables } from 'frog/middlewares'
+
+export const app = new Frog({ title: 'Frog Frame' })
+// @log:    ↓ 1. Inject middleware onto the app.
+  .use(
+    neynar({
+      apiKey: 'NEYNAR_FROG_FM',
+      features: ['interactor', 'cast'],
+    }),
+  )
+
+// @log: 2. All routes on `app` will inject the middleware.
+```
+
+### Route-level
+
+We can inject middleware on a route level:
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { neynar } from 'frog/middlewares'
+
+const neynarMiddleware = neynar({
+  apiKey: 'NEYNAR_FROG_FM',
+  features: ['interactor', 'cast'],
+})
+
+export const app = new Frog({ title: 'Frog Frame' })
+
+// @log:                ↓ Inject middleware onto the route.
+app.frame('/', neynarMiddleware, (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {c.var.interactor?.displayName}
+      </div>
+    ),
+  })
+})
+```
+
+:::tip[Tip]
+You can also include more than one middleware on a route!
+
+```tsx
+app.frame(
+  '/', 
+  neynarMiddleware,
+  fooMiddleware,
+  barMiddleware,
+  c => { /* ... */ }
+)
+```
+:::
+
+## Built-in Middlewares
+
+### Neynar
+
+Frog comes with a built-in middleware for [Neynar](https://neynar.com) which allows you to easily integrate Neynar features (such as the interactor of your frame, and frame cast) into Frog context.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { neynar } from 'frog/middlewares'
+
+export const app = new Frog({ title: 'Frog Frame' })
+// @log:    ↓ 1. Inject `neynar` middleware onto the app.
+  .use(
+    neynar({
+      apiKey: 'NEYNAR_FROG_FM',
+      features: ['interactor', 'cast'],
+    }),
+  )
+  .frame('/', (c) => {
+// @log:             ↓ 2. Use `c.var` to access Neynar variables!
+    const { displayName, followerCount } = c.var.interactor || {}
+    console.log('cast: ', c.var.cast)
+    console.log('interactor: ', c.var.interactor)
+    //                                ^?
+    return c.res({
+      image: (
+        <div
+          style={{
+            alignItems: 'center',
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            fontSize: 48,
+            height: '100%',
+            width: '100%',
+          }}
+        >
+          Greetings {displayName}, you have {followerCount} followers.
+        </div>
+      ),
+    })
+  })
+```
+
+:::warning
+Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
+
+## Custom Middleware
+
+You can write your own Frog middleware. This is great if you want to share common logic across or frames or if you are developing a SDK for Frog users to hook into their frames.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+// Custom logger // [!code focus]
+app.use(async (c, next) => { // [!code focus]
+  console.log(`[${c.req.method}] ${c.req.url}`) // [!code focus]
+  await next() // [!code focus]
+}) // [!code focus]
+
+// Add a custom header // [!code focus]
+app.use('/foo/*', async (c, next) => { // [!code focus]
+  await next() // [!code focus]
+  c.header('x-message', 'Only called for `/foo` and `/foo/bar` frames.') // [!code focus]
+}) // [!code focus]
+
+app.frame('/', (c) => {/* ... */})
+
+app.frame('/foo', (c) => {/* ... */})
+
+app.frame('/foo/bar', (c) => {/* ... */})
+```
+
+## Community Middleware
+
+Middleware is one of the most powerful pieces of Frog. This section showcases community-built middleware that you can use in your Frog apps.
+
+If you've built a middleware for Frog, feel free to [submit a PR](https://github.com/wevm/frog) to add it to this list.
+
+### Airstack Middlewares
+- [Airstack Allow List Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk?tab=readme-ov-file#allow-list-middleware)
+- [Airstack Onchain Data Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk?tab=readme-ov-file#onchain-data-middleware)
+
+### Pinata FDK Middlewares
+- [Pinata FDK Analytics Middleware](https://docs.pinata.cloud/farcaster/fdk/farcaster-frames#frog-analytics-plug-in)
+
+### XMTP Frames Middleware
+
+The XMTP community has implemeted ways to enhance user experience by supporting frames within XMTP applications.
+
+**Metadata**
+
+To build a Frame with XMTP, you must first add XMTP metadata. This is done following the specifications of [OpenFrames](https://www.openframes.xyz).
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
+  return {
+    unstable_metaTags: [
+      { property: `of:accepts`, content: version || "vNext" },
+      { property: `of:accepts:${client}`, content: version || "vNext" },
+    ],
+  };
+};
+
+export const app = new Frog(addMetaTags("xmtp"));
+```
+
+**Validate incoming messages**:
+
+Install the `@xmtp/frames-validator` package to validate incoming messages.
+
+:::code-group
+
+```bash [npm]
+npm install @xmtp/frames-validator
+```
+
+```bash [yarn]
+yarn add @xmtp/frames-validator
+```
+:::
+
+Add the middleware to validate incoming messages.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { validateFramesPost } from "@xmtp/frames-validator";
+import { Frog } from 'frog'
+import type { MiddlewareHandler } from 'hono'
+
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
+  return {
+    unstable_metaTags: [
+      { property: `of:accepts`, content: version || "vNext" },
+      { property: `of:accepts:${client}`, content: version || "vNext" },
+    ],
+  };
+};
+
+function xmtpSupport(): MiddlewareHandler<{
+  Variables: { client?: 'xmtp' | 'farcaster'; verifiedWalletAddress?: string }
+}> {
+  return async (c, next) => {
+    // Check if the request is a POST and relevant for XMTP processing
+    if (c.req.method === "POST") {
+      const requestBody = (await c.req.json().catch(() => {})) || {};
+      if (requestBody?.clientProtocol?.includes("xmtp")) {
+        c.set("client", "xmtp");
+        const { verifiedWalletAddress } = await validateFramesPost(requestBody);
+        c.set("verifiedWalletAddress", verifiedWalletAddress);
+      } else {
+        // Add farcaster check
+        c.set("client", "farcaster");
+      }
+    }
+    await next();
+  }
+}
+
+const app = new Frog(addMetaTags("xmtp")).use(xmtpSupport());
+
+// Access verified wallet address in a frame:
+app.frame("/", (c) => {
+  /* Get Frame variables */
+  const { buttonValue, inputText, status } = c;
+
+  // XMTP verified address
+  const { verifiedWalletAddress } = c?.var || {};
+
+  return c.res({
+    image: (
+      <div tw="flex">
+        XMTP Frame. Verified Address: {verifiedWalletAddress}
+      </div>
+    )
+  })
+})
+```
+
+For more information refer to [XMTP Docs](https://xmtp.org/docs/build/frames).

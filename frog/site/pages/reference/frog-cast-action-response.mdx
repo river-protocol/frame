@@ -1,0 +1,80 @@
+# Frog.castAction Response
+
+The response returned from the `.castAction` handler.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.castAction('/', (c) => {
+    return c.res({ // [!code focus]
+      // ... // [!code focus]
+    }) // [!code focus]
+  },
+  {
+    name: 'My Action',
+    icon: 'log'
+  }
+)
+```
+
+## message
+
+- **Type:** `string`
+
+Message to show in the toast in the App that sent the action.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+ 
+app.castAction('/', (c) => {
+    return c.res({
+      message: 'Action Succeeded!', // [!code focus]
+      type: 'message'
+    })
+  },
+  {
+    name: 'My Action',
+    icon: 'log'
+  }
+)
+```
+
+## link
+
+:::warning
+The `link` property is valid to be added only in response with HTTP status 200.
+Thus you cannot add one in `.error()` response.
+:::
+
+- **Type:** `string | undefined`
+
+An optional URL. Must be http:// or https:// protocol.
+If present, clients must display the message as an external link to this URL.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+ 
+app.castAction('/', (c) => {
+    return c.res({
+      message: 'Action Succeeded!',
+      link: 'https://frog.fm', // [!code focus]
+      type: 'message',
+    })
+  },
+  {
+    name: 'My Action',
+    icon: 'log'
+  }
+)
+```

@@ -1,0 +1,135 @@
+# Frog.composerAction
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction( // [!code focus]
+  '/', // [!code focus]
+  (c) => { // [!code focus]
+    return c.res({
+      title: 'My Composr Action', // [!code focus]
+      url: 'https://example.com' // [!code focus]
+    }) // [!code focus]
+  }, // [!code focus]
+  { // [!code focus]
+    name: 'Some Composer Action', // [!code focus]
+    description: 'Cool Composer Action', // [!code focus]
+    icon: 'image', // [!code focus]
+    imageUrl: 'https://frog.fm/logo-light.svg', // [!code focus]
+  } // [!code focus]
+) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/', // [!code focus]
+  (c) => {
+    return c.res({
+      title: 'My Composr Action',
+      url: 'https://example.com'
+    })
+  },
+  {
+    name: 'Some Composer Action',
+    description: 'Cool Composer Action',
+    icon: 'image',
+    imageUrl: 'https://frog.fm/logo-light.svg',
+  }
+)
+```
+
+### handler
+
+- **Type:** `(c: Context) => ComposerActionResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/',
+  (c) => { // [!code focus]
+    return c.res({ // [!code focus]
+      title: 'My Composr Action', // [!code focus]
+      url: 'https://example.com' // [!code focus]
+    }) // [!code focus]
+  }, // [!code focus]
+  {
+    name: 'Some Composer Action',
+    description: 'Cool Composer Action',
+    icon: 'image',
+    imageUrl: 'https://frog.fm/logo-light.svg',
+  }
+)
+```
+
+### options
+
+- **Type:** `RouteOptions<'composerAction'>`
+
+Options for Composer Action
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/',
+  (c) => {
+    return c.res({
+      title: 'My Composr Action',
+      url: 'https://example.com'
+    })
+  },
+  { // [!code focus]
+    name: 'Some Composer Action', // [!code focus]
+    description: 'Cool Composer Action', // [!code focus]
+    icon: 'image', // [!code focus]
+    imageUrl: 'https://frog.fm/logo-light.svg', // [!code focus]
+  } // [!code focus]
+)
+```
+
+#### Context Parameter
+
+[See the Composer Action Context API.](/reference/frog-composer-action-context)
+
+#### Action Response
+
+[See the Composer Action Response API.](/reference/frog-composer-action-response)

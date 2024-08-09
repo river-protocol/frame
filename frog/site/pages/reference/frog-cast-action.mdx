@@ -1,0 +1,115 @@
+# Frog.castAction
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.castAction('/', (c) => { // [!code focus]
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { // [!code focus]
+    name: 'My Action', // [!code focus]
+    icon: 'log' // [!code focus]
+  } // [!code focus]
+) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.castAction(
+  '/foo/bar', // [!code focus]
+  (c) => {
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { // [!code focus]
+    name: 'My Action', // [!code focus]
+    icon: 'log' // [!code focus]
+  } // [!code focus]
+) // [!code focus]
+```
+
+### handler
+
+- **Type:** `(c: Context) => CastActionResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.castAction(
+  '/foo/bar',
+  (c) => { // [!code focus]
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { 
+    name: 'My Action',
+    icon: 'log'
+  }
+) 
+```
+
+### options
+
+- **Type:** `RouteOptions<'castAction'>`
+
+Options for a Cast Action
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.castAction(
+  '/foo/bar',
+  (c) => {
+    return c.message({ message: 'Action Succeeded' })
+  },
+  { 
+    aboutUrl: 'https://frog.fm/reference/frog-cast-action', // [!code focus]
+    name: 'My Action', // [!code focus]
+    description: 'My awesome action.', // [!code focus]
+    icon: 'log' // [!code focus]
+  }
+) 
+```
+
+#### Context Parameter
+
+[See the Cast Action Context API.](/reference/frog-cast-action-context)
+
+#### Action Response
+
+[See the Cast Action Response API.](/reference/frog-cast-action-response)

@@ -1,0 +1,240 @@
+# Bun
+
+[Bun](https://bun.sh/) is a JavaScript runtime (similar to Node.js & Deno) designed speed, complete with a bundler, test runner, and Node.js-compatible package manager.
+
+## Quick Start
+
+You can scaffold a Frog project with Bun integrated via the `create-frog` CLI:
+
+:::code-group
+
+```bash [npm]
+npm init frog -- -t bun
+```
+
+```bash [pnpm]
+pnpm create frog -t bun
+```
+
+```bash [yarn]
+yarn create frog -t bun
+```
+
+```bash [bun]
+bunx create-frog -t bun
+```
+
+:::
+
+## Manual Installation
+
+::::steps
+
+### Install Bun
+
+If Bun is not already installed on your system, you will need to install it:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+### Build your Frame
+
+Next, scaffold your frame:
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+// import { neynar } from 'frog/hubs'
+
+export const app = new Frog({
+  // Supply a Hub to enable frame verification.
+  // hub: neynar({ apiKey: '' }),
+  title: 'Frog Frame',
+})
+
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          'Select your fruit!'
+        ) : (
+          `Selected: ${buttonValue}`
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  })
+})
+```
+
+:::tip
+Feel free to use the `neynar` hub aling with our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
+
+### Add Bun Server
+
+After that, we will append a Bun server to the file.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({
+  title: 'Frog Frame',
+})
+
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          'Select your fruit!'
+        ) : (
+          `Selected: ${buttonValue}`
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  })
+})
+
+Bun.serve({ // [!code focus]
+  fetch: app.fetch, // [!code focus]
+  port: 3000, // [!code focus]
+}) // [!code focus]
+console.log('Server is running on port 3000') // [!code focus]
+```
+
+### Setup Devtools
+
+Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way the devtools can automatically discover all your frames.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'hono/bun' // [!code focus]
+
+export const app = new Frog({
+  title: 'Frog Frame',
+})
+
+app.frame('/', (c) => {
+  ...
+})
+
+devtools(app, { serveStatic }) // [!code focus]
+// @log: ^ Devtools should be called after all frames are defined.
+
+Bun.serve({
+  fetch: app.fetch,
+  port: 3000,
+})
+console.log('Server is running on port 3000')
+```
+
+### Add Scripts to `package.json`
+
+Then we will add a `serve` script to serve our Bun server.
+
+```json
+{
+  "scripts": {
+    "dev": "frog dev", // [!code focus]
+    "serve": "bun run src/index.tsx" // [!code focus]
+  },
+  "dependencies": {
+    "hono": "latest",
+    "frog": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
+```
+
+### Navigate to Frame
+
+Then, we can navigate to our frame in the browser:
+
+`npm run dev`
+
+`http://localhost:5173`
+
+### Bonus: Deploy
+
+You can deploy your Bun application to any platform that supports the Bun runtime, such as:
+
+- [Fly.io](https://fly.io/blog/flydotio-heart-bun/)
+- [Render](https://docs.render.com/deploy-bun-docker)
+
+### Bonus: Browser Redirects
+
+If a user navigates to your frame in the browser, we may want to redirect them 
+to another webpage that corresponds to the frame.
+
+In the example below, when a user navigates to the `/frame/foo` path of the website via their web browser, 
+they will be redirected to the `/foo` path.
+
+[Read more on Browser Redirects](/concepts/browser-redirects)
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({
+  browserLocation: '/:path', // [!code focus]
+  title: 'Frog Frame',
+})
+
+app.frame('/frame/:path', (c) => { // [!code focus]
+  const { buttonValue, status } = c
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          'Select your fruit!'
+        ) : (
+          `Selected: ${buttonValue}`
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  })
+})
+
+Bun.serve({ // [!code focus]
+  fetch: app.fetch, // [!code focus]
+  port: 3000, // [!code focus]
+}) // [!code focus]
+console.log('Server is running on port 3000') // [!code focus]
+```
+
+::::

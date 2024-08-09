@@ -1,0 +1,192 @@
+# Cast Actions
+
+Cast Actions let developers create custom buttons which users can install into their action bar on any Farcaster application (see the [spec](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa)).  
+
+## Overview
+
+At a glance:
+
+1. User installs Cast Action via specific deeplink or by clicking on `<Button.AddCastAction>{:jsx}` element with a specified target `.castAction` route in a Frame.
+2. When the user presses the Cast Action button in the App, the App will make a `POST` request to the `.castAction` route.
+3. Server performs any action and returns a response to the App which is shown as a toast.
+
+## Walkthrough
+
+Here is a trivial example of how to expose an action with a frame. We will break it down below.
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Log this!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction action="/log-this">
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    )
+    return c.res({ type: 'message', message: 'Action Succeeded' })
+  },
+  { name: "Log This!", icon: "log" })
+)
+```
+
+:::
+
+::::steps
+
+### 1. Render Frame & Add Action Intent
+
+In the example above, we are rendering Add Action intent:
+
+`action` property is used to set the path to the cast action route.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Log this!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction action="/log-this">
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+
+// ...
+```
+
+
+### 2. Handle `/log-this` Requests
+
+Without a route handler to handle the Action request, the Cast Action will be meaningless. 
+
+To specify the name and icon for your action, the next properties are used in the action handler definition:
+1. `name` property is used to set the name of the action. It must be less than 30 characters
+2. `icon` property is used to associate your Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+3. (optional) `description` property is used to describe your action, up to 80 characters.
+4. (optional) `aboutUrl` property is used to show an "About" link when installing an action.
+
+Let's define a `/log-this` route to handle the Cast Action:
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Log this!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction action="/log-this">
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+
+app.castAction( // [!code focus]
+  '/log-this',  // [!code focus]
+  (c) => { // [!code focus]
+    console.log( // [!code focus]
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
+        c.actionData.fid // [!code focus]
+      }`, // [!code focus]
+    ) // [!code focus]
+    return c.res({ type: 'message', message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { name: "Log This!", icon: "log" }) // [!code focus]
+) // [!code focus]
+```
+
+A breakdown of the `/log-this` route handler:
+
+- We are responding with a `c.res` response and specifying a `message` that will appear in the success toast.
+
+### 3. Bonus: Shorthand `c.message`
+
+Instead of `c.res({ type: 'message' })`, you can use a shorthand `c.message(...)`.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    ) 
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, 
+  { name: "Log This!", icon: "log" })
+)
+```
+
+### 4. Bonus: Returning an error
+
+You can return an error response for a Client to render an error toast by using `c.error`.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    ) 
+    return c.error({ message: 'Action Failed' }) // [!code focus]
+  }, 
+  { name: "Log This!", icon: "log" })
+)
+```
+
+### 5. Bonus: Learn the API
+
+You can learn more about the transaction APIs here:
+
+- [`Frog.castAction` Reference](/reference/frog-cast-action)
+- [`Frog.castAction` Context Reference](/reference/frog-cast-action-context)
+- [`Frog.castAction` Response Reference](/reference/frog-cast-action-response)
+
+::::

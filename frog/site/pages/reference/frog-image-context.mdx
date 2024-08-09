@@ -1,0 +1,133 @@
+# Frog.image Context
+
+The `c` object is the parameter of the route handlers.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.image('/', (c) => { // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+:::tip[Tip]
+An image handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
+:::
+
+## previousButtonValues
+
+- **Type**: `string[]`
+
+The data of the previous intents.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({ 
+  title: 'Frog Frame'
+}) 
+ 
+app.frame('/', (c) => {
+  const { previousButtonValues } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## previousState
+
+- **Type**: `State`
+
+The state of the previous frame.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+type State = {     
+  values: string[] 
+} 
+ 
+export const app = new Frog<{ State: State }>({ 
+  initialState: { 
+    values: [] 
+  },
+  title: 'Frog Frame',
+}) 
+ 
+app.frame('/', (c) => {
+  const { previousState } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## req
+
+- **Type**: `Request`
+
+[Hono request object](https://hono.dev/api/request).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+ 
+app.image('/', (c) => {
+  const { req } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## res
+
+- **Type**: `(response: ImageResponse) => ImageResponse`
+
+The image response.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+ 
+app.image('/', (c) => {
+  return c.res({/* ... */}) // [!code focus]
+})
+```
+
+## var
+
+- **Type**: `HonoContext['var']`
+
+Extract a context value that was previously set via [`set`](#set) in [Middleware](/concepts/middleware).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.use(async (c, next) => {
+  c.set('message', 'Frog is cool!!')
+  await next()
+})
+ 
+app.image('/', (c) => {
+  const message = c.var.message // [!code focus]
+  return c.res({/* ... */})
+})
+```
